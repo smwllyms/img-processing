@@ -4,6 +4,18 @@ export default (function() {
 
     let scope = {};
 
+    function flipMat(mat)
+    {
+        const newMat = new Array(mat.length);
+
+        for (let i in mat)
+        {
+            newMat[i] = mat[mat.length - i - 1];
+        }
+
+        return newMat;
+    }
+
     scope.doEffect = function(rgb, kernel)
     {
 
@@ -12,6 +24,9 @@ export default (function() {
 
         // Also assume there is a center (e.g., 3x3, 5x5)
         const offset = Math.floor(kernelRowLen / 2);
+
+        // Flip kernel
+        kernel = flipMat(kernel);
 
         // Traverse 
         const width = rgb.length;
@@ -29,16 +44,18 @@ export default (function() {
                 let r = 0, g = 0, b = 0;
                 let pos = 0;
 
-                for (let ox = x - offset; ox <= x + offset; ox++)
+                for (let oy = y - offset; oy <= y + offset; oy++)
                 {
-                    if (ox < 0 || ox >= width) {
+
+                    if (oy < 0 || oy >= height) {
                         pos++;
                         continue;
                     }
 
-                    for (let oy = y - offset; oy <= y + offset; oy++)
+                    for (let ox = x - offset; ox <= x + offset; ox++)
                     {
-                        if (oy < 0 || oy >= height) {
+                        
+                        if (ox < 0 || ox >= width) {
                             pos++;
                             continue;
                         }
@@ -53,12 +70,9 @@ export default (function() {
                 }
 
                 // sum += input[i + j] * kernel[kernel.length - 1 - j];
-                newRGB[y][x] = [r, g, b];
+                newRGB[y][x] = [Math.abs(r), Math.abs(g), Math.abs(b)];
             }
         }
-
-        console.log(rgb)
-        console.log(newRGB)
 
         return newRGB;
     }

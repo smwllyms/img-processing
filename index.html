@@ -30,7 +30,8 @@
 </head>
 <body>
     <div id="left-pane">
-        <h2>Choose an image</h2>
+        <h2>Image Convolution</h2>
+        <p>Based on what I learned from this <a href="https://www.youtube.com/watch?v=KuXjwB4LzSA">3blue1brown</a> video (it might be helpful to watch this first.)</p>
         <div 
             class="img-wrapper"
             id="src">
@@ -39,15 +40,21 @@
             type="file"
             id="img-input">
         </input>
+        <button id="demo">Load Demo Image</button>
         <br/>
         <textarea 
             id="kernel"
             placeholder="Kernel (e.g., 3x3: [0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111])"></textarea>
         <div>
+            <span>Blur</span>
             <button id="load-3x3">3x3</button>
             <button id="load-5x5">5x5</button>
             <button id="load-11x11">11x11</button>
             <button id="load-21x21">21x21</button>
+            <br/>
+            <span>Sobel</span>
+            <button id="sobel-3x3-vert">3x3 Vertical</button>
+            <button id="sobel-3x3-hori">3x3 Horizontal</button>
         </div>
         <button id="do-effect">Do effect</button>
     </div>
@@ -84,6 +91,18 @@
     })
     document.getElementById("load-21x21").addEventListener("click", e=>{
         kernel.value = `[${(()=>{let n = `${1/441}`; for (let i = 0; i < 440; i++) n += `, ${1/441}`; return n;})()}]`
+    })
+    document.getElementById("sobel-3x3-hori").addEventListener("click", e=>{
+        kernel.value = "[-1, 0, 1, -1, 0, 1, -1, 0, 1]";
+    })
+    document.getElementById("sobel-3x3-vert").addEventListener("click", e=>{
+        kernel.value = "[-1, -1, -1, 0, 0, 0, 1, 1, 1]";
+    })
+
+    document.getElementById("demo").addEventListener("click", async e=>{
+        const f = await fetch("./img/disc.png");
+        imgFile = await f.blob();
+        imageSetup();
     })
 
     let imgFile = null;
@@ -161,9 +180,8 @@
         dstImgWrapper.appendChild(newImg);
     }
 
-    imgInput.addEventListener("change", async function (e)  {
-        
-        imgFile = e.target.files[0];
+    function imageSetup()
+    {
         createImage();
 
         imgElem.addEventListener("load", e => {
@@ -173,6 +191,12 @@
 
             getRGB();
         });
+    }
+
+    imgInput.addEventListener("change", async function (e)  {
+        
+        imgFile = e.target.files[0];
+        imageSetup();
     });
 
     doEffectBtn.addEventListener("click", async function (e) {
