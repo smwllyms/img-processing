@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processing</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        #left-pane, #right-pane {
+            padding: 10px;
+            box-sizing: border-box;
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+        }
+        .img-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 90%;
+        }
+        .img-wrapper img {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="left-pane">
+        <h2>Choose an image</h2>
+        <div 
+            class="img-wrapper"
+            id="src">
+        </div>
+        <input
+            type="file"
+            id="img-input">
+        </input>
+        <br/>
+        <textarea 
+            id="kernel"
+            placeholder="Kernel (e.g., 3x3: [0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111])"></textarea>
+        <div>
+            <button id="load-3x3">3x3</button>
+            <button id="load-5x5">5x5</button>
+            <button id="load-11x11">11x11</button>
+            <button id="load-21x21">21x21</button>
+        </div>
+        <button id="do-effect">Do effect</button>
+    </div>
+    <div id="right-pane">
+        <div 
+            class="img-wrapper"
+            id="dst">
+        </div>
+    </div>
+    
+</body>
+</html>
+
+<script type="module">
+
+    import imgproc from "./img-processing/min.mjs"; 
+
+    const imgInput = document.getElementById("img-input");
+    const leftPane = document.getElementById("left-pane");
+    const srcImgWrapper = document.getElementById("src");
+    const dstImgWrapper = document.getElementById("dst");
+    const kernel = document.getElementById("kernel");
+    const doEffectBtn = document.getElementById("do-effect");
+    const rightPane = document.getElementById("right-pane");
+
+    document.getElementById("load-3x3").addEventListener("click", e=>{
+        kernel.value = "[0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111]"
+    })
+    document.getElementById("load-5x5").addEventListener("click", e=>{
+        kernel.value = "[0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04]"
+    })
+    document.getElementById("load-11x11").addEventListener("click", e=>{
+        kernel.value = `[${(()=>{let n = `${1/121}`; for (let i = 0; i < 120; i++) n += `, ${1/121}`; return n;})()}]`
+    })
+    document.getElementById("load-21x21").addEventListener("click", e=>{
+        kernel.value = `[${(()=>{let n = `${1/441}`; for (let i = 0; i < 440; i++) n += `, ${1/441}`; return n;})()}]`
+    })
+
+    let imgFile = null;
+    let imgElem = null;
+    let imgWidth = 0;
+    let imgHeight = 0;
+    let imgRGBData = [];
+
+    function createImage()
+    {
+        imgElem = document.createElement("img");
+        imgElem.src = URL.createObjectURL(imgFile);
+        srcImgWrapper.appendChild(imgElem);
+    }
+
+    function getRGB() {
+
+        const width = imgWidth;
+        const height = imgHeight;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const context = canvas.getContext('2d');
+        context.drawImage(imgElem, 0, 0);
+
+        imgRGBData = new Array(imgElem.height);
+        const imageData = context.getImageData(0, 0, width, height);
+
+        for (let y = 0; y < height; y++)
+        {
+            imgRGBData[y] = new Array(width);
+
+            for (let x = 0; x < width; x++)
+            {
+                const offset = y * width * 4 + x * 4;
+
+                const red = imageData.data[offset + 0];
+                const green = imageData.data[offset + 1];
+                const blue = imageData.data[offset + 2];
+
+                imgRGBData[y][x] = [red, green, blue];
+            }
+        }
+
+    }
+
+    function createEffectedImage(rgb)
+    {
+        const width = imgWidth;
+        const height = imgHeight;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const context = canvas.getContext('2d');
+
+        for (let y = 0; y < height; y++)
+        {
+            for (let x = 0; x < width; x++)
+            {
+                const red = rgb[y][x][0];
+                const green = rgb[y][x][1];
+                const blue = rgb[y][x][2];
+
+                context.fillStyle = "rgba("+red+","+green+","+blue+", 1)";  
+                context.fillRect( x, y, 1, 1 ); 
+            }
+        }
+
+        const newImg = document.createElement("img");
+        newImg.src = canvas.toDataURL();
+        dstImgWrapper.appendChild(newImg);
+    }
+
+    imgInput.addEventListener("change", async function (e)  {
+        
+        imgFile = e.target.files[0];
+        createImage();
+
+        imgElem.addEventListener("load", e => {
+
+            imgWidth = imgElem.naturalWidth;
+            imgHeight = imgElem.naturalHeight;
+
+            getRGB();
+        });
+    });
+
+    doEffectBtn.addEventListener("click", async function (e) {
+
+        const kl = kernel.value.length;
+        const kernelValues = kernel.value.slice(1, kl-1 ).split(",").map(v=>Number(v));
+
+        const newRGB = imgproc.doEffect(imgRGBData, kernelValues);
+        createEffectedImage(newRGB);
+
+    })
+</script>
