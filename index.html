@@ -10,13 +10,22 @@
             margin: 0;
             padding: 0;
             display: flex;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        h2 {
+            text-align: center;
+            margin: 0;
         }
         #left-pane, #right-pane {
-            padding: 10px;
+            padding: 15px;
             box-sizing: border-box;
             width: 50%;
             display: flex;
             flex-direction: column;
+            gap:10px;
+        }
+        #right-pane {
+            border-left: 2px solid lightgrey;
         }
         .img-wrapper {
             display: flex;
@@ -26,39 +35,79 @@
         .img-wrapper img {
             width: 100%;
         }
+        button {
+            border: 2px solid slategray;
+            padding: 5px;
+        }
+        button:hover {
+            opacity: 0.8;
+            cursor: pointer;
+        }
+        #load-img {
+            display: flex;
+            gap:10px;
+            justify-content: space-around;
+        }
+        #load-img > * {
+            flex-grow: 1;
+            flex-shrink: 1;
+            max-width: 33%;
+            text-align: center;
+        }
+        .step {
+            font-weight: bold;
+            text-align: center;
+            color:rgb(53, 60, 68);
+        }
+        hr {
+            margin:2px;
+        }
     </style>
 </head>
 <body>
     <div id="left-pane">
         <h2>Image Convolution</h2>
         <p>Based on what I learned from this <a href="https://www.youtube.com/watch?v=KuXjwB4LzSA">3blue1brown</a> video (it might be helpful to watch this first.)</p>
+        <hr>
+        <p class="step">Step 1.</p>
         <div 
             class="img-wrapper"
             id="src">
         </div>
-        <input
+        <div id="load-img">
+            <input
             type="file"
             id="img-input">
-        </input>
-        <button id="demo">Load Demo Image</button>
-        <br/>
+            </input>
+            <span> or </span>
+            <button id="demo">Load Demo Image</button>
+        </div>
+        <hr>
+        <p class="step">Step 2.</p>
+        <p>Enter a custom or choose a provided kernel to use.</p>
         <textarea 
             id="kernel"
             placeholder="Kernel (e.g., 3x3: [0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111, 0.111])"></textarea>
         <div>
+            <br/>
             <span>Blur</span>
             <button id="load-3x3">3x3</button>
             <button id="load-5x5">5x5</button>
             <button id="load-11x11">11x11</button>
             <button id="load-21x21">21x21</button>
             <br/>
+            <br/>
             <span>Sobel</span>
             <button id="sobel-3x3-vert">3x3 Vertical</button>
             <button id="sobel-3x3-hori">3x3 Horizontal</button>
         </div>
+        <br/>
+        <hr>
+        <p class="step">Step 3.</p>
         <button id="do-effect">Do effect</button>
     </div>
     <div id="right-pane">
+        <h2>Output</h2>
         <div 
             class="img-wrapper"
             id="dst">
@@ -166,6 +215,14 @@
         {
             for (let x = 0; x < width; x++)
             {
+                if (!rgb[y] || !rgb[y][x]) {
+                    console.log(x,y)
+                    console.log(width,height)
+                    console.log(rgb[y])
+                    try {
+                        console.log(rgb[y][x])
+                    } catch (e) {}
+                }
                 const red = rgb[y][x][0];
                 const green = rgb[y][x][1];
                 const blue = rgb[y][x][2];

@@ -29,8 +29,10 @@ export default (function() {
         kernel = flipMat(kernel);
 
         // Traverse 
-        const width = rgb.length;
-        const height = rgb[0].length;
+        // const width = rgb.length;
+        // const height = rgb[0].length;
+        const width = rgb[0].length;
+        const height = rgb.length;
 
         const newRGB = new Array(height);
 
@@ -38,7 +40,7 @@ export default (function() {
 
             newRGB[y] = new Array(width);
 
-            for (let x = 0; x < height; x++) {
+            for (let x = 0; x < width; x++) {
 
                 // Get the kernelRowLen x kernelRowLen around
                 let r = 0, g = 0, b = 0;
